@@ -2,30 +2,39 @@ import { PreViewPropsList } from '@/pages/MyForm/Context';
 import Channel from '@/pages/MyForm/components/Channel';
 import PreView from '@/pages/MyForm/components/PreView';
 import PreViewList from '@/pages/MyForm/components/PreViewList';
-import { Information, defaultInformation } from '@/pages/MyForm/types';
-import { getChatInformation } from '@/services/chatChannel/ChatController';
+import { defaultInformation } from '@/pages/MyForm/types';
+import { getChatInformationList } from '@/services/chatChannel/ChatController';
 import { PageContainer, ProCard } from '@ant-design/pro-components';
 import { Button, Divider, Input, message } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
-import React, { useRef, useState } from 'react';
-import styles from './index.less';
+import React, { useEffect, useRef, useState } from 'react';
+import styles from './index.module.less';
 
-const handleGetChatInformation =
-  async (): Promise<Chat.ChatInformation | void> => {
-    try {
-      return await getChatInformation({ id: 1 });
-    } catch (err) {
-      message.error('请求失败：' + err);
-      return;
-    }
-  };
+const handleGetChatInformation = async (): Promise<
+  Record<'list', Chat.ChatInformation[]>
+> => {
+  try {
+    return await getChatInformationList({ userId: 1 });
+  } catch (err) {
+    message.error('请求失败：' + err);
+    return { list: [] };
+  }
+};
 
 const MyForm: React.FC = () => {
   const [information, setInformation] =
-    useState<Information>(defaultInformation);
-  const [informationList, setInformationList] = useState<Information[]>([]);
+    useState<Chat.ChatInformation>(defaultInformation);
+  const [informationList, setInformationList] = useState<
+    Chat.ChatInformation[]
+  >([]);
   const informationId = useRef(0);
-  handleGetChatInformation();
+  const refInformationList = useRef<Chat.ChatInformation[]>([]);
+
+  handleGetChatInformation().then((r) => (refInformationList.current = r.list));
+  console.log(refInformationList.current);
+  useEffect(() => {
+    setInformationList(refInformationList.current);
+  }, [refInformationList]);
 
   return (
     <>
@@ -39,12 +48,13 @@ const MyForm: React.FC = () => {
       </PageContainer>
       <ProCard direction="column" ghost gutter={[0, 16]}>
         {/*聊天列表*/}
-        <ProCard gutter={12} style={{ height: 300 }}>
-          <PreViewPropsList.Provider value={informationList}>
-            <PreViewList />
-          </PreViewPropsList.Provider>
-        </ProCard>
-
+        <div className={styles['preview-list-card']}>
+          <ProCard gutter={12} style={{ height: 500 }}>
+            <PreViewPropsList.Provider value={informationList}>
+              <PreViewList />
+            </PreViewPropsList.Provider>
+          </ProCard>
+        </div>
         {/*输入区*/}
         <ProCard gutter={12}>
           <ProCard colSpan={12} className={styles.container}>
@@ -64,7 +74,7 @@ const MyForm: React.FC = () => {
 
             <TextArea
               showCount
-              maxLength={500}
+              maxLength={5000}
               style={{ height: 300, resize: 'none' }}
               onChange={(e) =>
                 setInformation({
@@ -90,9 +100,11 @@ const MyForm: React.FC = () => {
 
           <Divider type="vertical" />
           {/*预览区*/}
-          <ProCard colSpan={12} className={styles.container}>
-            <PreView {...information} />
-          </ProCard>
+          <div className={styles['preview-list-card']}>
+            <ProCard colSpan={12} style={{ height: 500 }}>
+              <PreView {...information} />
+            </ProCard>
+          </div>
         </ProCard>
       </ProCard>
     </>

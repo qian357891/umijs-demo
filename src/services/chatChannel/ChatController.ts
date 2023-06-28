@@ -27,7 +27,7 @@ export async function getChatInformationList(
   },
   options?: { [key: string]: any },
 ) {
-  return request<Chat.ChatInformation[]>(GET_INFORMATION_LIST, {
+  return request<Record<'list', Chat.ChatInformation[]>>(GET_INFORMATION_LIST, {
     method: 'POST',
     data: params,
     requestType: 'form',

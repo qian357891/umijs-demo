@@ -10,7 +10,7 @@ const PreViewList: React.FC = () => {
       {preViewPropsList.map((information) => {
         return (
           <Fragment key={information.id}>
-            <PreView {...information} />
+            <PreView {...information} tinyPre={true} />
           </Fragment>
         );
       })}
